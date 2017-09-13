@@ -8,11 +8,17 @@ var calculator = (function() {
 
 		this.numberStack = [];
 		this.calculateStack = [];
+		this.resultStack = [];
 
 		this.numberValuePushed = new Event(this);
 		this.operatorValuePushed = new Event(this);
+		this.resultCalculated = new Event(this);
 
 		var _self = this;
+
+		this.add = function(a, b) {
+			return parseFloat(a) + parseFloat(b);
+		}
 	}
 	CalculatorModel.prototype = {
 		// Number
@@ -31,7 +37,7 @@ var calculator = (function() {
 			this.calculateStack.push(value);
 			this.operatorValuePushed.notify({ 'operator' : this.popCalculate() });
 		},
-		popCalculate: function(bool) {
+		popCalculate: function(bool /* true or false */ ) {
 			if (bool === true)
 				return this.calculateStack.pop();
 			if (this.calculateStack.length > 0)
@@ -42,10 +48,22 @@ var calculator = (function() {
 		},
 		calculateResult: function() {
 			var result = 0;
+			var arg1 = this.calculateStack.splice(0,1);
+			var operator = this.calculateStack.splice(0,1);
+			var arg2 = this.calculateStack.splice(0,1);
 			// for (var i = 0; i < this.calculateStack.length; i++) {
 			//
 			// }
-			console.log(this.calculateStack);
+			this.calculateStack[0] = this.add(arg1, arg2);
+			this.pushResult(this.calculateStack[0]);
+			consoleLog(this.getResult());
+			this.resultCalculated.notify({ 'result' : this.getResult() });
+		},
+		pushResult: function(result) {
+			this.resultStack.push(result);
+		},
+		getResult: function() {
+			return this.resultStack[this.resultStack.length - 1];
 		}
 	};
 
@@ -85,6 +103,9 @@ var calculator = (function() {
 			if (args.hasOwnProperty('operator')) {
 				this._displayElement.html(args.operator);
 			}
+			if (args.hasOwnProperty('result')) {
+				this._displayElement.html(args.result);
+			}
 		},
 		clearDisplay: function() {
 			this._displayElement.html('0');
@@ -112,6 +133,10 @@ var calculator = (function() {
 			_self._view.renderDisplay(args);
 		});
 
+		this._model.resultCalculated.attach(function(sender, args) {
+			_self._view.renderDisplay(args);
+		});
+
 		// attach view listeners
 		this._view.numberButtonClicked.attach(function(sender, args) {
 			_self.numberPressed(args.number);
@@ -136,7 +161,6 @@ var calculator = (function() {
 			}
 			if (operator === '=') {
 				this._model.calculateResult();
-				this.clearCalculator();
 			} else if (operator === 'C') {
 				this.clearCalculator();
 			}
