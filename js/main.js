@@ -16,8 +16,17 @@ var calculator = (function() {
 
 		var _self = this;
 
-		this.add = function(a, b) {
+		this.addOperation = function(a, b) {
 			return parseFloat(a) + parseFloat(b);
+		}
+		this.subtractOperation = function(a, b) {
+			return parseFloat(a) - parseFloat(b);
+		}
+		this.multiplyOperation = function(a, b) {
+			return parseFloat(a) * parseFloat(b);
+		}
+		this.divideOperation = function(a, b) {
+			return parseFloat(a) / parseFloat(b);
 		}
 	}
 	CalculatorModel.prototype = {
@@ -47,6 +56,7 @@ var calculator = (function() {
 			this.calculateStack = [];
 		},
 		calculateResult: function() {
+			consoleLog(this.calculateStack);
 			var result = 0;
 			var arg1 = this.calculateStack.splice(0,1);
 			var operator = this.calculateStack.splice(0,1);
@@ -54,9 +64,17 @@ var calculator = (function() {
 			// for (var i = 0; i < this.calculateStack.length; i++) {
 			//
 			// }
-			this.calculateStack[0] = this.add(arg1, arg2);
+			if (operator == '+') {
+		 		result = this.addOperation(arg1, arg2);
+			} else if (operator == '-') {
+		 		result = this.subtractOperation(arg1, arg2);
+			} else if (operator == '*') {
+		 		result = this.multiplyOperation(arg1, arg2);
+			} else if (operator == '/') {
+		 		result = this.divideOperation(arg1, arg2);
+			}
+			this.calculateStack[0] = result.toString();
 			this.pushResult(this.calculateStack[0]);
-			consoleLog(this.getResult());
 			this.resultCalculated.notify({ 'result' : this.getResult() });
 		},
 		pushResult: function(result) {
@@ -92,7 +110,7 @@ var calculator = (function() {
 		});
 
 		this._operatorButtonElements.click(function() {
-			_self.operatorButtonClicked.notify({ 'operator' : $(this).html() });
+			_self.operatorButtonClicked.notify({ 'operator' : $(this).attr('data-value') });
 		});
 	}
 	CalculatorView.prototype = {
