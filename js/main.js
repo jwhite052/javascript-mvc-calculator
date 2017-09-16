@@ -12,6 +12,7 @@ var calculator = (function() {
 
 		this.numberValuePushed = new Event(this);
 		this.operatorValuePushed = new Event(this);
+		this.calculateValuePushed = new Event(this);
 		this.resultCalculated = new Event(this);
 
 		var _self = this;
@@ -44,6 +45,7 @@ var calculator = (function() {
 		// Calculate
 		pushCalculate: function(value) {
 			this.calculateStack.push(value);
+			this.calculateValuePushed.notify({ 'calculate' : this.getCalculateString() });
 			this.operatorValuePushed.notify({ 'operator' : this.popCalculate() });
 		},
 		popCalculate: function(bool /* true or false */ ) {
@@ -54,6 +56,9 @@ var calculator = (function() {
 		},
 		clearCalculate: function() {
 			this.calculateStack = [];
+		},
+		getCalculateString: function() {
+			return this.calculateStack.join('');
 		},
 		calculateResult: function() {
 			consoleLog(this.calculateStack);
@@ -81,7 +86,19 @@ var calculator = (function() {
 			this.resultStack.push(result);
 		},
 		getResult: function() {
-			return this.resultStack[this.resultStack.length - 1];
+			if (this.getResultStackLength() > 0) {
+				return this.resultStack[this.getResultStackLength() - 1];
+			}
+			return null;
+		},
+		getResultStackLength: function() {
+			return this.resultStack.length;
+		},
+		isResultEmpty: function() {
+			if (this.getResultStackLength() > 0) {
+				return false;
+			}
+			return true;
 		}
 	};
 
@@ -97,7 +114,8 @@ var calculator = (function() {
 		this._elements = elements;
 		this._numberButtonElements = elements.number;
 		this._operatorButtonElements = elements.operator;
-		this._displayElement = elements.display;
+		this._mainDisplayElement = elements.display;
+		this._historyDisplayElement = elements.history;
 
 		this.numberButtonClicked = new Event(this);
 		this.operatorButtonClicked = new Event(this);
@@ -114,19 +132,15 @@ var calculator = (function() {
 		});
 	}
 	CalculatorView.prototype = {
-		renderDisplay: function(args) {
-			if (args.hasOwnProperty('number')) {
-				this._displayElement.html(args.number);
-			}
-			if (args.hasOwnProperty('operator')) {
-				this._displayElement.html(args.operator);
-			}
-			if (args.hasOwnProperty('result')) {
-				this._displayElement.html(args.result);
-			}
+		renderMainDisplay: function(output) {
+			this._mainDisplayElement.html(output);
+		},
+		renderHistoryDisplay: function(output) {
+			this._historyDisplayElement.html(output);
 		},
 		clearDisplay: function() {
-			this._displayElement.html('0');
+			this.renderMainDisplay('0');
+			this.renderHistoryDisplay('0');
 		}
 	};
 
@@ -144,15 +158,19 @@ var calculator = (function() {
 
 		// attach model listeners
 		this._model.numberValuePushed.attach(function(sender, args) {
-			_self._view.renderDisplay(args);
+			_self._view.renderMainDisplay(args.number);
 		});
 
 		this._model.operatorValuePushed.attach(function(sender, args) {
-			_self._view.renderDisplay(args);
+			//_self._view.renderMainDisplay(args.operator);
 		});
 
 		this._model.resultCalculated.attach(function(sender, args) {
-			_self._view.renderDisplay(args);
+			_self._view.renderMainDisplay(args.result);
+		});
+
+		this._model.calculateValuePushed.attach(function(sender, args) {
+			_self._view.renderHistoryDisplay(args.calculate);
 		});
 
 		// attach view listeners
@@ -174,11 +192,22 @@ var calculator = (function() {
 				this._model.pushCalculate(this._model.getNumber());
 				this._model.clearNumber();
 			}
-			if (this._model.popCalculate() !== operator) {
+			// If there is a result stored, add to calculate stack
+			// if (!this._model.isResultEmpty()) {
+			// 	this._model.pushCalculate(this._model.getResult());
+			// 	this._model.clearCalculate();
+			// }
+			// If operator has not yet been added, add the operator to the calculate stack
+			if (!isNaN(this._model.popCalculate())) {
+				this._model.pushCalculate(operator);
+			} else {
+				this._model.popCalculate(true);
 				this._model.pushCalculate(operator);
 			}
 			if (operator === '=') {
 				this._model.calculateResult();
+				this._model.clearCalculate();
+				this._model.clearNumber();
 			} else if (operator === 'C') {
 				this.clearCalculator();
 			}
@@ -216,6 +245,7 @@ var calculator = (function() {
 		var model = new CalculatorModel();
 		var view = new CalculatorView(model, {
 			'display' : $('.js-calculator .display'),
+			'history' : $('.js-calculator .history'),
 			'number' : $('.js-calculator .btn.number'),
 			'operator' : $('.js-calculator .btn.operator')
 		});
