@@ -1,7 +1,8 @@
 var calculator = (function() {
 	"use strict";
 
-	var DEBUG_ON = 1;
+	// Toggle consoleLog output for debugging
+	var DEBUG_ON = true; // Boolean
 
 	function CalculatorModel() {
 		consoleLog('MODEL: initialized'); // Debug
@@ -60,26 +61,81 @@ var calculator = (function() {
 		getCalculateString: function() {
 			return this.calculateStack.join('');
 		},
-		calculateResult: function() {
-			consoleLog(this.calculateStack);
-			var result = 0;
-			var arg1 = this.calculateStack.splice(0,1);
-			var operator = this.calculateStack.splice(0,1);
-			var arg2 = this.calculateStack.splice(0,1);
-			// for (var i = 0; i < this.calculateStack.length; i++) {
-			//
-			// }
-			if (operator == '+') {
-		 		result = this.addOperation(arg1, arg2);
-			} else if (operator == '-') {
-		 		result = this.subtractOperation(arg1, arg2);
-			} else if (operator == '*') {
-		 		result = this.multiplyOperation(arg1, arg2);
-			} else if (operator == '/') {
-		 		result = this.divideOperation(arg1, arg2);
+		isCalculateEmpty: function() {
+			if (this.calculateStack.length > 0) {
+				return false;
 			}
-			this.calculateStack[0] = result.toString();
-			this.pushResult(this.calculateStack[0]);
+			return true;
+		},
+		calculateResult: function() {
+			var index, indexAdd, indexSubtract, indexDivide, indexMultiply;
+			var result, arg1, arg2, operator;
+
+			while (this.calculateStack.length > 2) {
+				consoleLog(this.calculateStack);
+
+				result = 0;
+
+				indexAdd = this.calculateStack.indexOf('+');
+				indexSubtract = this.calculateStack.indexOf('-');
+				indexMultiply = this.calculateStack.indexOf('*');
+				indexDivide = this.calculateStack.indexOf('/');
+
+				// PEMDAS, order of operations
+				if (indexMultiply != -1 || indexDivide != -1) {
+					if (indexMultiply != -1 && indexDivide != -1) {
+						if (indexMultiply < indexDivide) {
+							index = indexMultiply;
+						} else {
+							index = indexDivide;
+						}
+					} else if (indexMultiply != -1) {
+						index = indexMultiply;
+					} else if (indexDivide != -1) {
+						index = indexDivide;
+					}
+				} else {
+					if (indexAdd != -1 && indexSubtract != -1) {
+						if (indexAdd < indexSubtract) {
+							index = indexAdd;
+						} else {
+							index = indexSubtract;
+						}
+					} else if (indexAdd != -1) {
+						index = indexAdd;
+					} else if (indexSubtract != -1) {
+						index = indexSubtract;
+					}
+				}
+
+				index -= 1; // Sets starting index to pull in values, one before the operator's index
+				consoleLog('index = ' + index);
+				arg1 = this.calculateStack.splice(index, 1);
+				consoleLog('arg1 = ' + arg1);
+				operator = this.calculateStack.splice(index, 1);
+				consoleLog('operator = ' + operator);
+				arg2 = this.calculateStack.splice(index, 1);
+				consoleLog('arg2 = ' + arg2);
+
+				// Check if all values are defined
+				if (arg1 !== undefined && arg2 !== undefined && operator !== undefined) {
+					if (operator == '+') {
+				 		result = this.addOperation(arg1, arg2);
+					} else if (operator == '-') {
+				 		result = this.subtractOperation(arg1, arg2);
+					} else if (operator == '*') {
+				 		result = this.multiplyOperation(arg1, arg2);
+					} else if (operator == '/') {
+				 		result = this.divideOperation(arg1, arg2);
+					}
+				}
+				consoleLog('Operator: ' + operator);
+				consoleLog('Result: ' + result);
+				this.calculateStack.splice(index, 0, result);
+				consoleLog('Stack: ' + this.calculateStack);
+			}
+			// this.calculateStack[0] = result.toString();
+			this.pushResult(result);
 			this.resultCalculated.notify({ 'result' : this.getResult() });
 		},
 		pushResult: function(result) {
@@ -90,6 +146,12 @@ var calculator = (function() {
 				return this.resultStack[this.getResultStackLength() - 1];
 			}
 			return null;
+		},
+		popResult: function(bool /* true or false */ ) {
+			if (bool === true)
+				return this.resultStack.pop();
+			if (this.resultStack.length > 0)
+				return this.resultStack[this.resultStack.length - 1];
 		},
 		getResultStackLength: function() {
 			return this.resultStack.length;
@@ -187,35 +249,58 @@ var calculator = (function() {
 			this._model.pushNumber(number);
 		},
 		operatorPressed: function(operator) {
-			// If not empty, add the number to calculate stack and then clear the number stack
-			if (this._model.getNumber().length > 0 ) {
-				this._model.pushCalculate(this._model.getNumber());
-				this._model.clearNumber();
-			}
-			// If there is a result stored, add to calculate stack
-			// if (!this._model.isResultEmpty()) {
-			// 	this._model.pushCalculate(this._model.getResult());
-			// 	this._model.clearCalculate();
-			// }
-			// If operator has not yet been added, add the operator to the calculate stack
-			if (!isNaN(this._model.popCalculate())) {
-				this._model.pushCalculate(operator);
-			} else {
-				this._model.popCalculate(true);
-				this._model.pushCalculate(operator);
-			}
+			var _self = this;
+
 			if (operator === '=') {
-				this._model.calculateResult();
-				this._model.clearCalculate();
-				this._model.clearNumber();
+				if (!_self._model.isCalculateEmpty()) {
+					addNumberToCalcStack();
+					_self._model.calculateResult();
+					_self._model.clearCalculate();
+					_self._model.clearNumber();
+				}
 			} else if (operator === 'C') {
-				this.clearCalculator();
+				clearCalculator();
+			} else {
+				addNumberToCalcStack();
+				addResultToCalcStack();
+				addOperatorToCalcStack();
 			}
-		},
-		clearCalculator: function() {
-			this._model.clearNumber();
-			this._model.clearCalculate();
-			this._view.clearDisplay();
+
+			// If not empty, add the number to calculate stack and then clear the number stack
+			function addNumberToCalcStack() {
+				if (_self._model.getNumber().length > 0 ) {
+					_self._model.pushCalculate(_self._model.getNumber());
+					_self._model.clearNumber();
+				}
+			}
+
+			// If there is a result stored, add the result to calculate stack
+			function addResultToCalcStack() {
+				if (!_self._model.isResultEmpty()) {
+					_self._model.clearCalculate();
+					_self._model.pushCalculate(_self._model.popResult(true));
+				}
+			}
+
+			// If operator has not yet been added, add the operator to the calculate stack
+			function addOperatorToCalcStack() {
+				if (!isNaN(_self._model.popCalculate())) {
+					_self._model.pushCalculate(operator);
+				} else {
+					// If the calculate stack is not empty, then push the operator on to the stack
+					if (!_self._model.isCalculateEmpty()) {
+						_self._model.popCalculate(true);
+						_self._model.pushCalculate(operator);
+					}
+				}
+			}
+
+			// Clear out all memory stacks
+			function clearCalculator() {
+				_self._model.clearNumber();
+				_self._model.clearCalculate();
+				_self._view.clearDisplay();
+			}
 		}
 	};
 
@@ -256,7 +341,7 @@ var calculator = (function() {
 	* consoleLog. Wrapper for console.log that is flag driven for debugging purposes.
 	*/
 	function consoleLog(output) {
-		if (DEBUG_ON != 1) return;
+		if (DEBUG_ON !== true) return;
 		console.log(output);
 	}
 })();
