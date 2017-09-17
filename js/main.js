@@ -1,8 +1,7 @@
 var calculator = (function() {
 	"use strict";
 
-	// Toggle consoleLog output for debugging
-	var DEBUG_ON = true; // Boolean
+	var DEBUG_ON = true; // Boolean, toggles consoleLog output for debugging
 
 	function CalculatorModel() {
 		consoleLog('MODEL: initialized'); // Debug
@@ -42,6 +41,9 @@ var calculator = (function() {
 		},
 		clearNumber: function() {
 			this.numberStack = [];
+		},
+		popNumber: function() {
+			return this.numberStack.pop();
 		},
 		// Calculate
 		pushCalculate: function(value) {
@@ -136,6 +138,7 @@ var calculator = (function() {
 			}
 			// this.calculateStack[0] = result.toString();
 			this.pushResult(result);
+
 			this.resultCalculated.notify({ 'result' : this.getResult() });
 		},
 		pushResult: function(result) {
@@ -161,6 +164,9 @@ var calculator = (function() {
 				return false;
 			}
 			return true;
+		},
+		clearResult: function() {
+			this.resultStack = [];
 		}
 	};
 
@@ -174,10 +180,11 @@ var calculator = (function() {
 
 		this._model = model;
 		this._elements = elements;
+		this._calculatorElement = elements.calculator;
 		this._numberButtonElements = elements.number;
 		this._operatorButtonElements = elements.operator;
-		this._mainDisplayElement = elements.display;
-		this._historyDisplayElement = elements.history;
+		this._mainDisplayElement = elements.mainDisplay;
+		this._historyDisplayElement = elements.historyDisplay;
 
 		this.numberButtonClicked = new Event(this);
 		this.operatorButtonClicked = new Event(this);
@@ -186,7 +193,7 @@ var calculator = (function() {
 
 		// attach listeners to HTML controls
 		this._numberButtonElements.click(function() {
-			_self.numberButtonClicked.notify({ 'number' : $(this).html() });
+			_self.numberButtonClicked.notify({ 'number' : $(this).attr('data-value') });
 		});
 
 		this._operatorButtonElements.click(function() {
@@ -195,7 +202,26 @@ var calculator = (function() {
 	}
 	CalculatorView.prototype = {
 		renderMainDisplay: function(output) {
-			this._mainDisplayElement.html(output);
+			var _output = output.toString();
+			this._mainDisplayElement.html(_output); // Addresses floating point issues
+			if (
+				_output === '07734' ||
+				_output === '0.7734' ||
+				_output === '5318008' ||
+				_output === '14' ||
+				_output === '379009' ||
+				_output === '319009' ||
+				_output === '37818' ||
+				_output === '663' ||
+				_output === '5663'
+			) {
+				if (!this._calculatorElement.hasClass('rotate'))
+					this.rotateCalculator();
+			} else if (_output === '8675309') {
+				var win = window.open('https://www.youtube.com/watch?v=6WTdTwcmxyo', '_blank');
+				if (win)
+					win.focus();
+			}
 		},
 		renderHistoryDisplay: function(output) {
 			this._historyDisplayElement.html(output);
@@ -203,6 +229,9 @@ var calculator = (function() {
 		clearDisplay: function() {
 			this.renderMainDisplay('0');
 			this.renderHistoryDisplay('0');
+		},
+		rotateCalculator: function() {
+			this._calculatorElement.toggleClass('rotate');
 		}
 	};
 
@@ -221,10 +250,6 @@ var calculator = (function() {
 		// attach model listeners
 		this._model.numberValuePushed.attach(function(sender, args) {
 			_self._view.renderMainDisplay(args.number);
-		});
-
-		this._model.operatorValuePushed.attach(function(sender, args) {
-			//_self._view.renderMainDisplay(args.operator);
 		});
 
 		this._model.resultCalculated.attach(function(sender, args) {
@@ -246,7 +271,13 @@ var calculator = (function() {
 	}
 	CalculatorController.prototype = {
 		numberPressed: function(number) {
-			this._model.pushNumber(number);
+			if (number === '.') {
+				if (this._model.getNumber().indexOf('.') == -1) {
+					this._model.pushNumber(number);
+				}
+			} else {
+				this._model.pushNumber(number);
+			}
 		},
 		operatorPressed: function(operator) {
 			var _self = this;
@@ -260,6 +291,19 @@ var calculator = (function() {
 				}
 			} else if (operator === 'C') {
 				clearCalculator();
+			} else if (operator === 'R') {
+				_self._view.rotateCalculator();
+			} else if (operator == 'delete') {
+				if (_self._model.getResultStackLength() < 1) {
+					if (_self._model.getNumber().length > 0) {
+						_self._model.popNumber();
+						if (_self._model.getNumber().length === 0) {
+							_self._view.renderMainDisplay('0');
+						} else {
+							_self._view.renderMainDisplay(_self._model.getNumber());
+						}
+					}
+				}
 			} else {
 				addNumberToCalcStack();
 				addResultToCalcStack();
@@ -299,6 +343,7 @@ var calculator = (function() {
 			function clearCalculator() {
 				_self._model.clearNumber();
 				_self._model.clearCalculate();
+				_self._model.clearResult();
 				_self._view.clearDisplay();
 			}
 		}
@@ -329,8 +374,9 @@ var calculator = (function() {
 		consoleLog("PROGRAM START"); // debug
 		var model = new CalculatorModel();
 		var view = new CalculatorView(model, {
-			'display' : $('.js-calculator .display'),
-			'history' : $('.js-calculator .history'),
+			'calculator' : $('.js-calculator'),
+			'mainDisplay' : $('.js-calculator .display .main'),
+			'historyDisplay' : $('.js-calculator .display .history'),
 			'number' : $('.js-calculator .btn.number'),
 			'operator' : $('.js-calculator .btn.operator')
 		});

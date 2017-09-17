@@ -1,48 +1,78 @@
+@button-height: 50px;
 @gray: #ccc;
-@blue: #152456;
 
 .js-calculator {
 	padding: 8px;
 	margin: 0 auto;
 	width: 270px;
 	background-color: @gray;
-	font-family: Arial;
 	font-size: 21px;
-	border: 2px solid #aaa;
+	transition: ease-in .5s;
+	box-shadow: 2px 2px 2px #999;
+	border-radius: 5px;
 	&::after {
 		content: '';
 		display: table;
 		clear: both;
 	}
-	.display {
-		font-size: 34px;
-		box-sizing: border-box;
-		height: 2em;
-		background-color: #000;
-		padding-top: .5em;
-		padding-right: .5em;
-		color: lime;
-		text-align: right;
-		overflow: hidden;
+	&.rotate {
+		transform: rotate(180deg);
 	}
-	.history {
-		font-size: 18px;
+	.logo {
+		box-sizing: border-box;
+		padding: 2px;
+		font-size: 14px;
+		text-align: center;
+		font-family: 'Rationale', 'Courier New';
+		color: #666;
+	}
+	.logo a {
+		display: inline-block;
+		margin-left: 3px;
+		font-family: 'Kalam', cursive;
+		color: #666;
+		text-decoration: none;
+		&:hover {
+			color: #999;
+		}
+	}
+	.display {
 		box-sizing: border-box;
 		background-color: #000;
-		padding-bottom: .25em;
-		padding-right: .5em;
-		color: gray;
-		text-align: right;
-		overflow: hidden;
+		font-family: 'Rationale', 'Courier New', sans-serif;
+		& .main {
+			font-size: 40px;
+			box-sizing: border-box;
+			height: auto2em;
+			padding-top: .4em;
+			padding-right: .2em;
+			color: lime;
+			text-align: right;
+			overflow: hidden;
+		}
+		& .history {
+			font-size: 18px;
+			box-sizing: border-box;
+			padding-bottom: .25em;
+			padding-right: .5em;
+			color: gray;
+			text-align: right;
+			overflow: hidden;
+		}
+	}
+	.buttons {
+		margin-top: 5px;
 	}
 	.btn {
+		box-sizing: border-box;
 		float: left;
 		width: 25%;
 		height: 50px;
-		border: 1px solid #ccc;
 		background-color: #fff;
-		font-size: 21px;
+		font-family: 'Audiowide', 'Courier New', sans-serif;
+		font-size: 26px;
 		outline: none;
+		border-radius: 6px;
 		&:hover {
 			background-color: #e2e2e2;
 		}
@@ -52,5 +82,10 @@
 				background-color: red;
 			}
 		}
+	}
+	.blank {
+		float: left;
+		width: 25%;
+		height: @button-height;
 	}
 }

@@ -3,36 +3,44 @@
     <head>
         <meta charset="utf-8">
         <title>JavaScript (MVC) Calculator</title>
-        <link href="/css/main.less" type="text/css" rel="stylesheet/less"/>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/2.7.2/less.min.js"></script>
+        <link href="https://fonts.googleapis.com/css?family=Rationale" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Audiowide" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Kalam" rel="stylesheet">
         <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
         crossorigin="anonymous"></script>
         <script src="/js/main.js" type="text/javascript"></script>
+        <link href="/css/main.less" type="text/css" rel="stylesheet/less"/>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/2.7.2/less.min.js"></script>
     </head>
     <body>
         <div class="js-calculator">
-            <div class="display">0</div>
-            <div class="history">0</div>
-            <button class="btn operator" data-value="">&nbsp;</button>
-            <button class="btn operator" data-value="C">C</button>
-            <button class="btn operator" data-value="delete">&laquo;</button>
-            <button class="btn operator" data-value="/">&divide;</button>
-            <button class="btn number" data-value="7">7</button>
-            <button class="btn number" data-value="8">8</button>
-            <button class="btn number" data-value="9">9</button>
-            <button class="btn operator" data-value="*">&times;</button>
-            <button class="btn number" data-value="4">4</button>
-            <button class="btn number" data-value="5">5</button>
-            <button class="btn number" data-value="6">6</button>
-            <button class="btn operator" data-value="-">-</button>
-            <button class="btn number" data-value="1">1</button>
-            <button class="btn number" data-value="2">2</button>
-            <button class="btn number" data-value="3">3</button>
-            <button class="btn operator" data-value="+">+</button>
-            <button class="btn operator" data-value="">&nbsp;</button>
-            <button class="btn number" data-value="0">0</button>
-            <button class="btn operator" data-value=".">.</button>
-            <button class="btn operator" data-value="=">=</button>
+            <div class="logo">JavaScript MVC Calculator by <a href="http://www.jashuawhite.com" target="_blank">J.R. White</a></div>
+            <div class="display">
+                <div class="main">0</div>
+                <div class="history">0</div>
+            </div>
+            <div class="buttons">
+                <button class="btn operator" data-value="R">&orarr;</button>
+                <button class="btn operator" data-value="C">C</button>
+                <button class="btn operator" data-value="delete">&larr;</button>
+                <button class="btn operator" data-value="/">&divide;</button>
+                <button class="btn number" data-value="7">7</button>
+                <button class="btn number" data-value="8">8</button>
+                <button class="btn number" data-value="9">9</button>
+                <button class="btn operator" data-value="*">&times;</button>
+                <button class="btn number" data-value="4">4</button>
+                <button class="btn number" data-value="5">5</button>
+                <button class="btn number" data-value="6">6</button>
+                <button class="btn operator" data-value="-">-</button>
+                <button class="btn number" data-value="1">1</button>
+                <button class="btn number" data-value="2">2</button>
+                <button class="btn number" data-value="3">3</button>
+                <button class="btn operator" data-value="+">+</button>
+                <div class="blank"></div>
+                <button class="btn number" data-value="0">0</button>
+                <button class="btn number" data-value=".">.</button>
+                <button class="btn operator" data-value="=">=</button>
+            </div>
         </div>
     </body>
 </html>
